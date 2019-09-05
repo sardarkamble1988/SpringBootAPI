@@ -98,5 +98,16 @@ public class ApplicationTest {
 		Assert.assertEquals(bluModel, response);
 	}
 	
+	
+	// Get error details with invalid provider
+	@Test
+	public void getDetailsWithInvalidProvider() throws Exception{
+		ApplicationController applicationController = new ApplicationController();
+		applicationController.setApplicationService(applicationService);
+		ApplicationModel response = applicationController.getDetailsByProvider("BL");
+				
+		Assert.assertNotNull(response.getError());
+	}	
+	
 
 }
