@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.main.model.ApplicationModel;
-import com.main.model.Error;
 import com.main.service.ApplicationService;
+import com.main.strategydesignpattern.CommandMap;
 
 @RestController
 public class ApplicationController {
@@ -18,10 +18,16 @@ public class ApplicationController {
 	@Autowired
 	private ApplicationService applicationService;
 	
+	@Autowired
+	private CommandMap commandMap;
+	
 	public void setApplicationService(ApplicationService applicationService){
 		this.applicationService = applicationService;
 	}
 	
+	public void setCommandMap(CommandMap commandMap){
+		this.commandMap = commandMap;
+	}
 	
 	@RequestMapping("/cf")
 	public List<ApplicationModel> getAllDetails() {
@@ -35,19 +41,7 @@ public class ApplicationController {
 
 	@RequestMapping("/cf/{provider}")
 	public ApplicationModel getDetailsByProvider(@PathVariable String provider) {
-		if(provider.equals("PWC"))
-		return applicationService.getAllDetailsPivotal();
-		else if(provider.equals("BLU"))
-			return applicationService.getAllDetailsBlueMix();
-		else return getInvalidProviderObject();
-	}
-	
-	private ApplicationModel getInvalidProviderObject() {
-		ApplicationModel applicationModel = new ApplicationModel();
-		Error error = new Error();
-		error.setError("Invalid Input");
-		error.setDescription("Please provide valid Input");
-		applicationModel.setError(error);
-		return applicationModel;
+		provider = (provider.equals("PWC") || provider.equals("BLU")) ? provider : "Invalid"; 
+		return commandMap.get(provider).executeOperation();
 	}
 }

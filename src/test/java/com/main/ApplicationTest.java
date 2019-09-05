@@ -1,5 +1,7 @@
 package com.main;
 
+import static org.mockito.Mockito.when;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,8 +19,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.main.controller.ApplicationController;
 import com.main.model.ApplicationModel;
 import com.main.service.ApplicationService;
-
-import static org.mockito.Mockito.when;
+import com.main.strategydesignpattern.BluProviderImpl;
+import com.main.strategydesignpattern.CommandMap;
+import com.main.strategydesignpattern.InvalidProviderImpl;
+import com.main.strategydesignpattern.PwcProviderImpl;
 
 public class ApplicationTest {
 
@@ -27,7 +31,7 @@ public class ApplicationTest {
 	
 	@InjectMocks
 	private ApplicationService applicationService;
-	
+
 	@Before
 	public void setUp() throws Exception{
 		MockitoAnnotations.initMocks(this);
@@ -37,14 +41,12 @@ public class ApplicationTest {
 	@Test
 	public void getAllDetails() throws Exception{
 		ObjectMapper  mapper = new ObjectMapper();
-		
-		ApplicationModel pivotalModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx\", \"api_version\" : \"yy\" }",
+		ApplicationModel blueMixModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx\", \"api_version\" : \"yy\" }",
+				ApplicationModel.class);
+		ApplicationModel pivotalModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
 				ApplicationModel.class);
 		
-		ApplicationModel blueMixModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
-				ApplicationModel.class);
-		
-		when(restTemplate.getForEntity("http://api.run.pivotal.io/v2/info", ApplicationModel.class)).
+        when(restTemplate.getForEntity("http://api.run.pivotal.io/v2/info", ApplicationModel.class)).
         thenReturn(new ResponseEntity<ApplicationModel>(pivotalModel, HttpStatus.OK));
         
         when(restTemplate.getForEntity("http://api.ng.bluemix.net/v2/info", ApplicationModel.class)).
@@ -55,12 +57,12 @@ public class ApplicationTest {
 		applicationService.setRestTemplate(restTemplate);
 		applicationController.setApplicationService(applicationService);
 		
-		
 		List<ApplicationModel> response = applicationController.getAllDetails();
 		
 		Assert.assertEquals(Arrays.asList(pivotalModel, blueMixModel), response);
 	}
 	
+
 	// Get provider details with PWC
 	@Test
 	public void getDetailsByPWCProvider() throws Exception{
@@ -75,40 +77,46 @@ public class ApplicationTest {
         
 		
 		applicationController.setApplicationService(applicationService);
+		applicationController.setCommandMap(getCommandMap());
 		ApplicationModel response = applicationController.getDetailsByProvider("PWC");
-		
+			
 		Assert.assertEquals(pivotalModel, response);
 	}
 	
+
 	// Get provider details with BLU
 	@Test
 	public void getDetailsByBLUProvider() throws Exception{
 		ObjectMapper mapper = new ObjectMapper();
 		ApplicationController applicationController = new ApplicationController();
-			
-		ApplicationModel bluModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
-					ApplicationModel.class);
 		
+		ApplicationModel blueMixModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
+				ApplicationModel.class);
+		
+		getCommandMap();
 		when(restTemplate.getForEntity("http://api.ng.bluemix.net/v2/info", ApplicationModel.class)).
-        thenReturn(new ResponseEntity<ApplicationModel>(bluModel, HttpStatus.OK));
-			
+        thenReturn(new ResponseEntity<ApplicationModel>(blueMixModel, HttpStatus.OK));
+		
 		applicationController.setApplicationService(applicationService);
+		applicationController.setCommandMap(getCommandMap());
 		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
 			
-		Assert.assertEquals(bluModel, response);
+		Assert.assertEquals(blueMixModel, response);
 	}
-	
-	
+
+
 	// Get error details with invalid provider
 	@Test
 	public void getDetailsWithInvalidProvider() throws Exception{
 		ApplicationController applicationController = new ApplicationController();
 		applicationController.setApplicationService(applicationService);
+		applicationController.setCommandMap(getCommandMap());
 		ApplicationModel response = applicationController.getDetailsByProvider("BL");
-				
+			
 		Assert.assertNotNull(response.getError());
 	}
 	
+
 	// Test for internal server error
 	@Test
 	public void getDetailsInternalServerError() throws Exception{
@@ -122,6 +130,7 @@ public class ApplicationTest {
         thenReturn(new ResponseEntity<ApplicationModel>(blueMixModel, HttpStatus.INTERNAL_SERVER_ERROR));
         
 		applicationController.setApplicationService(applicationService);
+		applicationController.setCommandMap(getCommandMap());
 		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
 			
 		Assert.assertNull(response);
@@ -143,11 +152,25 @@ public class ApplicationTest {
         thenReturn(new ResponseEntity<ApplicationModel>(blueMixModel, HttpStatus.OK));
         
 		applicationController.setApplicationService(applicationService);
+		applicationController.setCommandMap(getCommandMap());
 		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
 			
 		Assert.assertEquals(blueMixModel, response);
 	}
-
 	
-
+	private CommandMap getCommandMap(){
+		CommandMap commandMap = new CommandMap();
+		
+		PwcProviderImpl pwcProviderImpl = new PwcProviderImpl();
+		pwcProviderImpl.setApplicationService(applicationService);
+		
+		BluProviderImpl bluProviderImpl = new BluProviderImpl();
+		bluProviderImpl.setApplicationService(applicationService);
+		
+		commandMap.put("PWC", pwcProviderImpl);
+		commandMap.put("BLU", bluProviderImpl);
+		commandMap.put("Invalid", new InvalidProviderImpl());
+		
+		return commandMap;
+	}
 }
