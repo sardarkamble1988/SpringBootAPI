@@ -61,5 +61,20 @@ public class ApplicationTest {
 		Assert.assertEquals(Arrays.asList(pivotalModel, blueMixModel), response);
 	}
 	
+	// Get provider details with PWC
+	@Test
+	public void getDetailsByPWCProvider() throws Exception{
+		ObjectMapper mapper = new ObjectMapper();
+		ApplicationController applicationController = new ApplicationController();
+			
+		ApplicationModel pivotalModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
+					ApplicationModel.class);
+			
+		applicationController.setApplicationService(applicationService);
+		ApplicationModel response = applicationController.getDetailsByProvider("PWC");
+				
+		Assert.assertEquals(pivotalModel, response);
+	}
+	
 
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,7 +16,6 @@ public class ApplicationController {
 	
 	@Autowired
 	private ApplicationService applicationService;
-	
 	
 	public void setApplicationService(ApplicationService applicationService){
 		this.applicationService = applicationService;
@@ -32,4 +32,8 @@ public class ApplicationController {
 		return list;
 	}
 
+	@RequestMapping("/cf/{provider}")
+	public ApplicationModel getDetailsByProvider(@PathVariable String provider) {
+		return null;
+	}
 }
