@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.main.model.ApplicationModel;
+import com.main.model.Error;
 import com.main.service.ApplicationService;
 
 @RestController
@@ -38,6 +39,15 @@ public class ApplicationController {
 		return applicationService.getAllDetailsPivotal();
 		else if(provider.equals("BLU"))
 			return applicationService.getAllDetailsBlueMix();
-		else return null;
+		else return getInvalidProviderObject();
+	}
+	
+	private ApplicationModel getInvalidProviderObject() {
+		ApplicationModel applicationModel = new ApplicationModel();
+		Error error = new Error();
+		error.setError("Invalid Input");
+		error.setDescription("Please provide valid Input");
+		applicationModel.setError(error);
+		return applicationModel;
 	}
 }
