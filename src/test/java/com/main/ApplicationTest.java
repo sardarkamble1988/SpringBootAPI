@@ -88,6 +88,9 @@ public class ApplicationTest {
 			
 		ApplicationModel bluModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
 					ApplicationModel.class);
+		
+		when(restTemplate.getForEntity("http://api.ng.bluemix.net/v2/info", ApplicationModel.class)).
+        thenReturn(new ResponseEntity<ApplicationModel>(bluModel, HttpStatus.OK));
 			
 		applicationController.setApplicationService(applicationService);
 		ApplicationModel response = applicationController.getDetailsByProvider("BLU");

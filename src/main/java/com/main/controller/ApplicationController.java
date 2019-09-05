@@ -34,6 +34,10 @@ public class ApplicationController {
 
 	@RequestMapping("/cf/{provider}")
 	public ApplicationModel getDetailsByProvider(@PathVariable String provider) {
+		if(provider.equals("PWC"))
 		return applicationService.getAllDetailsPivotal();
+		else if(provider.equals("BLU"))
+			return applicationService.getAllDetailsBlueMix();
+		else return null;
 	}
 }
