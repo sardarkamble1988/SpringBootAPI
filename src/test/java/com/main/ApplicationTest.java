@@ -107,7 +107,47 @@ public class ApplicationTest {
 		ApplicationModel response = applicationController.getDetailsByProvider("BL");
 				
 		Assert.assertNotNull(response.getError());
-	}	
+	}
+	
+	// Test for internal server error
+	@Test
+	public void getDetailsInternalServerError() throws Exception{
+		ObjectMapper mapper = new ObjectMapper();
+		ApplicationController applicationController = new ApplicationController();
+		
+		ApplicationModel blueMixModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
+				ApplicationModel.class);
+		
+		when(restTemplate.getForEntity("http://api.ng.bluemix.net/v2/info", ApplicationModel.class)).
+        thenReturn(new ResponseEntity<ApplicationModel>(blueMixModel, HttpStatus.INTERNAL_SERVER_ERROR));
+        
+		applicationController.setApplicationService(applicationService);
+		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
+			
+		Assert.assertNull(response);
+	}
+	
+	
+	// Test for timeout the external API call.
+	@Test(timeout = 2000)
+	public void getDetailsTimeOutException() throws Exception{
+		ObjectMapper mapper = new ObjectMapper();
+		ApplicationController applicationController = new ApplicationController();
+		
+		ApplicationModel blueMixModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
+				ApplicationModel.class);
+		
+		
+		//TimeUnit.SECONDS.sleep(2000);
+		when(restTemplate.getForEntity("http://api.ng.bluemix.net/v2/info", ApplicationModel.class)).
+        thenReturn(new ResponseEntity<ApplicationModel>(blueMixModel, HttpStatus.OK));
+        
+		applicationController.setApplicationService(applicationService);
+		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
+			
+		Assert.assertEquals(blueMixModel, response);
+	}
+
 	
 
 }
