@@ -34,6 +34,6 @@ public class ApplicationController {
 
 	@RequestMapping("/cf/{provider}")
 	public ApplicationModel getDetailsByProvider(@PathVariable String provider) {
-		return null;
+		return applicationService.getAllDetailsPivotal();
 	}
 }

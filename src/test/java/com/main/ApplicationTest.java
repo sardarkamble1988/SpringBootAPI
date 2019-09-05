@@ -66,13 +66,17 @@ public class ApplicationTest {
 	public void getDetailsByPWCProvider() throws Exception{
 		ObjectMapper mapper = new ObjectMapper();
 		ApplicationController applicationController = new ApplicationController();
-			
+		
 		ApplicationModel pivotalModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
-					ApplicationModel.class);
-			
+				ApplicationModel.class);
+		
+		when(restTemplate.getForEntity("http://api.run.pivotal.io/v2/info", ApplicationModel.class)).
+        thenReturn(new ResponseEntity<ApplicationModel>(pivotalModel, HttpStatus.OK));
+        
+		
 		applicationController.setApplicationService(applicationService);
 		ApplicationModel response = applicationController.getDetailsByProvider("PWC");
-				
+		
 		Assert.assertEquals(pivotalModel, response);
 	}
 	
