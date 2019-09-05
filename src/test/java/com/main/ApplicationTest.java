@@ -80,5 +80,20 @@ public class ApplicationTest {
 		Assert.assertEquals(pivotalModel, response);
 	}
 	
+	// Get provider details with BLU
+	@Test
+	public void getDetailsByBLUProvider() throws Exception{
+		ObjectMapper mapper = new ObjectMapper();
+		ApplicationController applicationController = new ApplicationController();
+			
+		ApplicationModel bluModel = (ApplicationModel)mapper.readValue("{ \"description\" : \"xx1\", \"api_version\" : \"yy1\" }",
+					ApplicationModel.class);
+			
+		applicationController.setApplicationService(applicationService);
+		ApplicationModel response = applicationController.getDetailsByProvider("BLU");
+			
+		Assert.assertEquals(bluModel, response);
+	}
+	
 
 }
